@@ -1,9 +1,10 @@
-import os
-import mmap
+module mmap
 
-fn test_mmap_file() ? {
+import os
+
+fn test_mmap_file() {
 	file_path := @FILE
-	mut minfo := mmap.mmap_file(file_path) ?
+	mut minfo := mmap_file(file_path)!
 	defer {
 		minfo.close()
 	}
@@ -12,27 +13,27 @@ fn test_mmap_file() ? {
 	assert minfo.addr != 0
 	assert minfo.fsize == os.file_size(file_path)
 	assert minfo.data.data == minfo.addr
-	assert minfo.data.len == minfo.fsize
+	assert u64(minfo.data.len) == minfo.fsize
 
-	data := os.read_file(file_path) ?
+	data := os.read_file(file_path)!
 	assert minfo.data == data.bytes()
 }
 
-fn test_to_byte_array() ? {
-	mut minfo := mmap.mmap_file(@FILE) ?
+fn test_to_byte_array() {
+	mut minfo := mmap_file(@FILE)!
 	defer {
 		minfo.close()
 	}
 
-	x := 'import os'.bytes()
+	x := 'module mmap'.bytes()
 	assert minfo.vbytes()[..x.len] == x
 }
 
-fn test_to_string() ? {
-	mut minfo := mmap.mmap_file(@FILE) ?
+fn test_to_string() {
+	mut minfo := mmap_file(@FILE)!
 	defer {
 		minfo.close()
 	}
 
-	assert minfo.bytestr().starts_with('import os')
+	assert minfo.bytestr().starts_with('module mmap')
 }

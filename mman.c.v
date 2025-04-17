@@ -9,7 +9,7 @@ import os
 pub struct MmapOptions {
 pub:
 	addr   voidptr = C.NULL 	  // No preferred virtual address
-	len    u64     = -1 		  // -1: use file size if fd != 0, else error
+	len    u64   //  = 0 		  // -1: use file size if fd != 0, else error
 	prot   int     = prot_read
 	flags  int     = map_shared
 	fd     int  /* = 0 */
@@ -17,7 +17,7 @@ pub:
 }
 
 // vbytes Cast the memory mapped region to []byte
-pub fn (this MmapInfo) vbytes() []byte {
+pub fn (this MmapInfo) vbytes() []u8 {
 	unsafe { return this.addr.vbytes(int(this.fsize)) }
 }
 
@@ -33,7 +33,7 @@ pub mut:
 pub:
 	fsize u64
 	addr  voidptr
-	data  []byte
+	data  []u8
 }
 
 // close Unmap the memory mapped region and close the underlying file
@@ -44,10 +44,10 @@ pub fn (mut this MmapInfo) close() {
 }
 
 // mmap_file This is a convinience function to memory map a file's content for read-only
-pub fn mmap_file(file string) ?MmapInfo {
+pub fn mmap_file(file string) !MmapInfo {
 	fsize := os.file_size(file)
-	mut f := os.open(file) ?
-	addr := mmap(len: fsize, prot: prot_read, flags: map_shared, fd: f.fd, offset: 0) ?
+	mut f := os.open(file)!
+	addr := mmap(len: fsize, prot: prot_read, flags: map_shared, fd: f.fd, offset: 0) or {return error("Unable to map! ${err}")}
 	return MmapInfo{
 		fd: f
 		fsize: u64(fsize)

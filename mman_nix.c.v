@@ -3,43 +3,35 @@
 //
 module mmap
 
-import os
-
 #include <sys/mman.h>
 
-pub const (
-	prot_none  = C.PROT_NONE
-	prot_read  = C.PROT_READ
-	prot_write = C.PROT_WRITE
-	prot_exec  = C.PROT_EXEC
-)
+pub const prot_none = C.PROT_NONE
+pub const prot_read = C.PROT_READ
+pub const prot_write = C.PROT_WRITE
+pub const prot_exec = C.PROT_EXEC
 
-pub const (
-	map_file      = C.MAP_FILE
-	map_shared    = C.MAP_SHARED
-	map_private   = C.MAP_PRIVATE
-	map_type      = C.MAP_TYPE
-	map_fixed     = C.MAP_FIXED
-	map_anonymous = C.MAP_ANONYMOUS
-	map_anon      = map_anonymous
-)
+pub const map_file = C.MAP_FILE
+pub const map_shared = C.MAP_SHARED
+pub const map_private = C.MAP_PRIVATE
+pub const map_type = C.MAP_TYPE
+pub const map_fixed = C.MAP_FIXED
+pub const map_anonymous = C.MAP_ANONYMOUS
+pub const map_anon = map_anonymous
 
 // Flags for msync.
-pub const (
-	ms_async      = C.MS_ASYNC
-	ms_sync       = C.MS_SYNC
-	ms_invalidate = C.MS_INVALIDATE
-)
+pub const ms_async = C.MS_ASYNC
+pub const ms_sync = C.MS_SYNC
+pub const ms_invalidate = C.MS_INVALIDATE
 
-fn C.mmap(addr voidptr, len size_t, prot int, flags int, fd int, offset i64) voidptr
-fn C.munmap(addr voidptr, len size_t) int
-fn C.mprotect(addr voidptr, len size_t, prot int) int
-fn C.msync(addr voidptr, len size_t, flags int) int
-fn C.mlock(addr voidptr, len size_t) int
-fn C.munlock(addr voidptr, len size_t) int
+fn C.mmap(addr voidptr, len usize, prot int, flags int, fd int, offset i64) voidptr
+fn C.munmap(addr voidptr, len usize) int
+fn C.mprotect(addr voidptr, len usize, prot int) int
+fn C.msync(addr voidptr, len usize, flags int) int
+fn C.mlock(addr voidptr, len usize) int
+fn C.munlock(addr voidptr, len usize) int
 
-pub fn mmap(args MmapOptions) ?voidptr {
-	addr := C.mmap(args.addr, size_t(args.len), args.prot, args.flags, args.fd, args.offset)
+pub fn mmap(args MmapOptions) !voidptr {
+	addr := C.mmap(args.addr, usize(args.len), args.prot, args.flags, args.fd, args.offset)
 	if addr != C.MAP_FAILED {
 		return addr
 	}
@@ -104,37 +96,37 @@ pub fn mmap(args MmapOptions) ?voidptr {
 				'open for writing.')
 		}
 		else {
-			return error('($C.errno) Unknown error')
+			return error('(${C.errno}) Unknown error')
 		}
 	}
 }
 
-pub fn munmap(addr voidptr, len u64) ? {
+pub fn munmap(addr voidptr, len u64) ! {
 	if C.munmap(addr, len) != 0 {
-		return error('($C.errno) munmap() failed')
+		return error('(${C.errno}) munmap() failed')
 	}
 }
 
-pub fn mprotect(addr voidptr, len u64, prot int) ? {
+pub fn mprotect(addr voidptr, len u64, prot int) ! {
 	if C.mprotect(addr, len, prot) != 0 {
-		return error('($C.errno) mprotect() failed')
+		return error('(${C.errno}) mprotect() failed')
 	}
 }
 
-pub fn msync(addr voidptr, len u64, flags int) ? {
+pub fn msync(addr voidptr, len u64, flags int) ! {
 	if C.msync(addr, len, flags) != 0 {
-		return error('($C.errno) msync() failed')
+		return error('(${C.errno}) msync() failed')
 	}
 }
 
-pub fn mlock(addr voidptr, len u64) ? {
+pub fn mlock(addr voidptr, len u64) ! {
 	if C.mlock(addr, len) != 0 {
-		return error('($C.errno) mlock() failed')
+		return error('(${C.errno}) mlock() failed')
 	}
 }
 
-pub fn munlock(addr voidptr, len u64) ? {
+pub fn munlock(addr voidptr, len u64) ! {
 	if C.munlock(addr, len) != 0 {
-		return error('($C.errno) munlock() failed')
+		return error('(${C.errno}) munlock() failed')
 	}
 }
